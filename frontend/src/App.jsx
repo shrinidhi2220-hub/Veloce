@@ -282,9 +282,25 @@ function ResalePage({ user, currency }) {
 
 function RewardsPage({ user }) {
   const [rewards,setRewards]=useState(null);const [error,setError]=useState('')
+  const [gameResult,setGameResult]=useState('');const [gameWon,setGameWon]=useState(false);const [gameError,setGameError]=useState(false)
   useEffect(()=>{if(user)api.rewards().then(r=>{setRewards(r.data);setError('')}).catch(e=>setError(e.message))},[user])
+  async function playDailyGame(){
+    try{
+      const response=await api.playGame()
+      setGameWon(response.data?.pointsAwarded>0)
+      setGameResult(response.message)
+      setGameError(false)
+      if(response.data?.totalPoints!=null)setRewards(current=>({...current,totalPoints:response.data.totalPoints}))
+      const updated=await api.rewards()
+      setRewards(updated.data)
+      setError('')
+    }catch(playError){
+      setGameResult(playError.message)
+      setGameError(true)
+    }
+  }
   if(!user)return <main className="page-main auth-layout"><section className="auth-card"><h1>Rewards await</h1><p>Sign in to earn and track VELOCE points.</p><a className="button" href="#/login?mode=login">Sign in</a></section></main>
-  return <main className="page-main"><div className="page-heading"><p className="eyebrow">VELOCE rewards</p><h1>{rewards?`${rewards.totalPoints} points`:'Rewards loading'}</h1></div><div className="rewards-layout"><WordPuzzleGame onBalanceChange={updatedRewards=>setRewards(current=>({...current,...updatedRewards}))}/><section className="summary-card"><h2>Points history</h2>{error&&<p className="form-error">{error}</p>}{rewards?.entries?.length?<div className="ledger">{rewards.entries.map(entry=><div className="ledger-row" key={entry.id}><div><strong>{entry.action.replaceAll('_',' ')}</strong><span>{new Date(entry.createdAt).toLocaleDateString()}</span></div><strong>+{entry.points}</strong></div>)}</div>:!error&&rewards&&<p className="muted">No reward activity yet.</p>}</section></div></main>
+  return <main className="page-main"><div className="page-heading"><p className="eyebrow">VELOCE rewards</p><h1>{rewards?`${rewards.totalPoints} points`:'Rewards loading'}</h1></div><div className="rewards-layout"><section className="summary-card"><h2>Daily Reward Game</h2><p>Play once a day. Wins earn 25 points.</p><button className={`game-orb${gameWon?' won':''}`} onClick={playDailyGame}>?</button>{gameResult&&<p className={gameError?'form-error':'form-message'}>{gameResult}</p>}</section><WordPuzzleGame onBalanceChange={updatedRewards=>setRewards(current=>({...current,...updatedRewards}))}/><section className="summary-card"><h2>Points history</h2>{error&&<p className="form-error">{error}</p>}{rewards?.entries?.length?<div className="ledger">{rewards.entries.map(entry=><div className="ledger-row" key={entry.id}><div><strong>{entry.action.replaceAll('_',' ')}</strong><span>{new Date(entry.createdAt).toLocaleDateString()}</span></div><strong>+{entry.points}</strong></div>)}</div>:!error&&rewards&&<p className="muted">No reward activity yet.</p>}</section></div></main>
 }
 
 function SurprisePage({ user, products }) {

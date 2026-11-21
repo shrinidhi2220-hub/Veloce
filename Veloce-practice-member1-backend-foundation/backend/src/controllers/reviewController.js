@@ -93,7 +93,7 @@ async function createReview(req, res, next) {
         productId,
         order: {
           userId,
-          status: 'CONFIRMED',
+          status: 'DELIVERED',
         },
       },
       select: {
