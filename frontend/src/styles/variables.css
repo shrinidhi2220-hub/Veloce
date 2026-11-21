@@ -1,0 +1,78 @@
+:root {
+  /* ==========================================================================
+     VELOCE Design System — Modern Earthy Color Palette
+     ========================================================================== */
+  --color-ivory: #F5F0E6;          /* Warm Ivory: Main backgrounds */
+  --color-eucalyptus: #C8D5C0;     /* Eucalyptus: Soft sections & highlights */
+  --color-sage: #7C9875;           /* Sage Green: Secondary accents */
+  --color-terracotta: #B77B55;     /* Terracotta: Highlights and selected CTAs */
+  --color-charcoal: #343B32;       /* Forest Charcoal: Text and primary buttons */
+  --color-white: #FFFFFF;          /* Pure White: Cards and surfaces */
+  --color-muted: #74796F;          /* Muted Text: Secondary text and captions */
+  --color-border: #E6E4DC;         /* Border: Dividers and borders */
+  --color-success: #547B59;        /* Success: Success indicators */
+
+  /* Derived Tonal Variations */
+  --color-ivory-light: #FAF8F4;
+  --color-terracotta-hover: #A06742;
+  --color-charcoal-hover: #232822;
+  --color-sage-light: #EDF3EC;
+  --color-eucalyptus-light: #EBF0E8;
+  --color-danger: #C25450;
+  --color-warning: #D9822B;
+
+  /* Typography Scale */
+  --font-family-serif: 'Playfair Display', Georgia, serif;
+  --font-family-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', Consolas, monospace;
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-md: 1.125rem;    /* 18px */
+  --text-lg: 1.25rem;     /* 20px */
+  --text-xl: 1.5rem;      /* 24px */
+  --text-2xl: 1.875rem;   /* 30px */
+  --text-3xl: 2.25rem;    /* 36px */
+  --text-4xl: 3rem;       /* 48px */
+  --text-5xl: 3.75rem;    /* 60px */
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* Layout */
+  --container-max: 1280px;
+  --container-padding: 1.5rem;
+  --navbar-height: 76px;
+  --announcement-height: 38px;
+
+  /* Elevation & Shadows */
+  --shadow-subtle: 0 1px 3px rgba(52, 59, 50, 0.05);
+  --shadow-card: 0 4px 20px rgba(52, 59, 50, 0.06);
+  --shadow-hover: 0 12px 32px rgba(52, 59, 50, 0.12);
+  --shadow-modal: 0 20px 48px rgba(52, 59, 50, 0.2);
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
