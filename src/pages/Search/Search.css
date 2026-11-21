@@ -1,0 +1,68 @@
+.search-page {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-20);
+}
+
+.search-hero {
+  max-width: 720px;
+  margin: 0 auto var(--space-12);
+  text-align: center;
+}
+
+.search-input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--color-white);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 0.5rem 1rem 0.5rem 1.5rem;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-input-box:focus-within {
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 4px rgba(183, 123, 85, 0.15);
+}
+
+.search-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: var(--text-base);
+  color: var(--color-charcoal);
+  padding: 0.6rem 0.5rem;
+}
+
+.search-field:focus {
+  outline: none;
+}
+
+.search-suggestions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.suggestion-chip {
+  padding: 0.35rem 0.85rem;
+  background-color: var(--color-ivory);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-charcoal);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.suggestion-chip:hover {
+  background-color: var(--color-eucalyptus-light);
+  border-color: var(--color-eucalyptus);
+  color: var(--color-terracotta);
+}

@@ -1,0 +1,11 @@
+/* VELOCE Storefront App Layout */
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-ivory);
+}
+
+.main-content {
+  flex: 1;
+}
