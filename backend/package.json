@@ -12,6 +12,7 @@
     "db:setup": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed"
   },
   "dependencies": {
+    "@opensearch-project/opensearch": "^3.10.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",

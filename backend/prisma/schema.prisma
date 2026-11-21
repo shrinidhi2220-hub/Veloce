@@ -15,20 +15,27 @@ model User {
   name         String?
   phone        String?
   city         String?
+  referralCode String?  @unique
+  referredById String?
+  referredBy   User?    @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[]   @relation("UserReferrals")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  carts     Cart[]
-  orders    Order[]
-  reviews   Review[]
-  resales   ResaleListing[]
-  consents  SharingConsent[]
-  rewards   RewardLedger[]
-  surprises SurpriseRequest[]
+  carts                Cart[]
+  orders               Order[]
+  reviews              Review[]
+  resales              ResaleListing[]   @relation("ResaleSeller")
+  boughtResaleListings ResaleListing[]   @relation("ResaleListingBuyer")
+  consents             SharingConsent[]
+  rewards              RewardLedger[]
+  surprises            SurpriseRequest[]
+  resalePurchases      ResalePurchase[]  @relation("ResaleBuyer")
 
   @@index([email])
   @@index([city])
   @@index([role])
+  @@index([referredById])
 }
 
 model Product {
@@ -136,18 +143,22 @@ model Review {
 }
 
 model ResaleListing {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User            @relation("ResaleSeller", fields: [userId], references: [id])
   productName String
   description String?
   condition   String
   askingPrice Float
   city        String
   images      String[]
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String          @default("PENDING")
+  buyerId     String?
+  buyer       User?           @relation("ResaleListingBuyer", fields: [buyerId], references: [id])
+  purchasedAt DateTime?
+  purchase    ResalePurchase?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -212,6 +223,24 @@ model RewardLedger {
   @@unique([userId, action, reference])
   @@index([userId])
   @@index([action])
+}
+
+model ResalePurchase {
+  id              String        @id @default(uuid())
+  listingId       String        @unique
+  listing         ResaleListing @relation(fields: [listingId], references: [id])
+  buyerId         String
+  buyer           User          @relation("ResaleBuyer", fields: [buyerId], references: [id])
+  orderNumber     String        @unique
+  totalAmount     Float
+  paymentMethod   String        @default("COD")
+  shippingAddress Json
+  status          String        @default("CONFIRMED")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([buyerId])
+  @@index([status])
 }
 
 model OutboxEvent {

@@ -17,6 +17,7 @@ function safeUser(user) {
     phone: user.phone,
     city: user.city,
     role: user.role,
+    referralCode: user.referralCode,
   };
 }
 
@@ -31,6 +32,10 @@ function createToken(userId) {
       audience: JWT_AUDIENCE,
     }
   );
+}
+
+function makeReferralCode(userId) {
+  return `VLC-${userId.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
 }
 
 function optionalText(value, field, maxLength) {
@@ -97,27 +102,72 @@ async function register(req, res, next) {
     const city = optionalText(req.body.city, 'City', 100);
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const referralCodeInput = optionalText(
+      req.body.referralCode,
+      'Referral code',
+      32
+    )?.toUpperCase();
 
-    const user = await prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        passwordHash,
-        name,
-        phone,
-        city,
-        // Never accept a role from the registration request.
-        // Prisma assigns CUSTOMER automatically.
-      },
+    const referrer = referralCodeInput
+      ? await prisma.user.findUnique({
+          where: { referralCode: referralCodeInput },
+          select: { id: true },
+        })
+      : null;
+
+    if (referralCodeInput && !referrer) {
+      return res.status(400).json({
+        success: false,
+        message: 'Referral code is not valid',
+      });
+    }
+
+    const updatedUser = await prisma.$transaction(async tx => {
+      const createdUser = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          passwordHash,
+          name,
+          phone,
+          city,
+          referredById: referrer?.id,
+        },
+      });
+      const userWithCode = await tx.user.update({
+        where: { id: createdUser.id },
+        data: { referralCode: makeReferralCode(createdUser.id) },
+      });
+
+      if (referrer) {
+        await tx.rewardLedger.createMany({
+          data: [
+            {
+              userId: referrer.id,
+              points: 100,
+              action: 'REFERRAL_BONUS',
+              reference: `REFERRAL-NEW-${createdUser.id}`,
+            },
+            {
+              userId: createdUser.id,
+              points: 50,
+              action: 'WELCOME_REFERRAL',
+              reference: `REFERRAL-JOIN-${createdUser.id}`,
+            },
+          ],
+        });
+      }
+
+      return userWithCode;
     });
 
-    const token = createToken(user.id);
+    const token = createToken(updatedUser.id);
 
     return res.status(201).json({
       success: true,
       message: 'Registration successful',
       data: {
         token,
-        user: safeUser(user),
+        user: safeUser(updatedUser),
       },
     });
   } catch (error) {
@@ -169,6 +219,7 @@ async function login(req, res, next) {
         phone: true,
         city: true,
         role: true,
+        referralCode: true,
         passwordHash: true,
       },
     });
@@ -216,8 +267,39 @@ async function getMe(req, res) {
   });
 }
 
+async function updateMe(req, res, next) {
+  try {
+    const name = optionalText(req.body?.name, 'Name', 100);
+    const phone = optionalText(req.body?.phone, 'Phone', 25);
+    const city = optionalText(req.body?.city, 'City', 100);
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { name, phone, city },
+    });
+
+    return res.json({
+      success: true,
+      message: 'Profile updated',
+      data: { user: safeUser(user) },
+    });
+  } catch (error) {
+    if (
+      error.message?.includes('must be text') ||
+      error.message?.includes('is too long')
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    return next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   getMe,
+  updateMe,
 };

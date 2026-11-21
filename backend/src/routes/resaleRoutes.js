@@ -25,6 +25,7 @@ router.patch(
 
 // Public: only approved resale listings.
 router.get('/', resaleController.getResaleListings);
+router.patch('/:id/purchase', authenticate, resaleController.purchaseResaleListing);
 
 // Authenticated customers can submit listings.
 router.post('/', authenticate, resaleController.createResaleListing);

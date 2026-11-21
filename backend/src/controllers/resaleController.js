@@ -1,4 +1,5 @@
-﻿const { prisma } = require('../config/database');
+const { prisma } = require('../config/database');
+const { randomBytes, randomUUID } = require('crypto');
 
 function requiredText(value, field, maxLength = 150) {
   if (typeof value !== 'string' || !value.trim()) {
@@ -272,10 +273,126 @@ function rejectResaleListing(req, res, next) {
   return changeResaleListingStatus(req, res, next, 'REJECTED');
 }
 
+async function purchaseResaleListing(req, res, next) {
+  try {
+    const listingId = req.params.id;
+    const input = req.body?.shippingAddress;
+
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid shippingAddress is required',
+      });
+    }
+
+    const fields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'postalCode', 'country'];
+    const shippingAddress = {};
+    for (const field of fields) {
+      const value = input[field];
+      if (typeof value !== 'string' || !value.trim() || value.trim().length > 200) {
+        return res.status(400).json({
+          success: false,
+          message: `${field} is required and must be 200 characters or fewer`,
+        });
+      }
+      shippingAddress[field] = value.trim();
+    }
+
+    const phoneDigits = shippingAddress.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+      return res.status(400).json({ success: false, message: 'Enter a valid phone number' });
+    }
+
+    const purchase = await prisma.$transaction(async tx => {
+      const listing = await tx.resaleListing.findUnique({ where: { id: listingId } });
+      if (!listing) return { error: { status: 404, message: 'Listing not found' } };
+      if (listing.userId === req.user.id) {
+        return { error: { status: 400, message: 'You cannot purchase your own listing' } };
+      }
+
+      const changed = await tx.resaleListing.updateMany({
+        where: { id: listingId, status: 'APPROVED' },
+        data: { status: 'SOLD', buyerId: req.user.id, purchasedAt: new Date() },
+      });
+      if (changed.count !== 1) {
+        return { error: { status: 409, message: 'This listing is no longer available' } };
+      }
+
+      const orderNumber = `RSL-${Date.now()}-${randomBytes(4).toString('hex').toUpperCase()}`;
+      const order = await tx.resalePurchase.create({
+        data: {
+          listingId,
+          buyerId: req.user.id,
+          orderNumber,
+          totalAmount: listing.askingPrice,
+          paymentMethod: 'COD',
+          shippingAddress,
+          status: 'CONFIRMED',
+        },
+      });
+
+      const resaleTopic = process.env.KAFKA_RESALE_TOPIC;
+      if (resaleTopic) {
+        const eventId = randomUUID();
+        const eventType = 'resale.purchase.created.v1';
+        await tx.outboxEvent.create({
+          data: {
+            eventId,
+            eventType,
+            aggregateType: 'RESALE_PURCHASE',
+            aggregateId: order.id,
+            topic: resaleTopic,
+            messageKey: order.id,
+            payload: {
+              eventId,
+              eventType,
+              schemaVersion: 1,
+              source: 'veloce-backend',
+              occurredAt: new Date().toISOString(),
+              resalePurchase: {
+                id: order.id,
+                listingId: order.listingId,
+                buyerId: order.buyerId,
+                orderNumber: order.orderNumber,
+                totalAmount: order.totalAmount,
+                paymentMethod: order.paymentMethod,
+                status: order.status,
+              },
+            },
+          },
+        });
+      }
+      return { order };
+    });
+
+    if (purchase.error) {
+      return res.status(purchase.error.status).json({
+        success: false,
+        message: purchase.error.message,
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Resale order placed with cash on delivery',
+      data: purchase.order,
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({
+        success: false,
+        message: 'This listing has already been purchased',
+      });
+    }
+    return next(error);
+  }
+}
+
 module.exports = {
   createResaleListing,
   getResaleListings,
   getAdminResaleListings,
   approveResaleListing,
   rejectResaleListing,
+  purchaseResaleListing,
 };

@@ -12,5 +12,6 @@ const {
 router.post('/register', registerLimiter, authController.register);
 router.post('/login', loginLimiter, authController.login);
 router.get('/me', authenticate, authController.getMe);
+router.patch('/me', authenticate, authController.updateMe);
 
 module.exports = router;
