@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database
+prisma/migrations/*.db
+
+# Logs
+logs/
+*.log
+
+# Test coverage
+coverage/
+
+# Ignore all environment files
+.env
+.env.*
+!.env.example
+
+# Private keys and credentials
+*.key
+*.p12
+*.pfx
+
+# Local TLS certificates and credentials
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+
+# Local backup files
+*.bak*
+
+# Local inspection and admin maintenance files
+backend/KAFKA_BACKEND_INSPECTION.txt
+backend/scripts/promote-admin.cjs
+backend/scripts/reset-admin-password.cjs
